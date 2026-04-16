@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DUMMY_REPORTS as REPORTS } from '../data/reports';
 import { CATEGORIES, STATUSES } from '../constants';
 import {
+  statusColor,
   statusBg,
   statusText,
   priorityColor,
