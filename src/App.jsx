@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
@@ -5,9 +6,25 @@ import TopBar from "./components/TopBar";
 import Dashboard from "./pages/Dashboard";
 import SubmitReport from "./pages/SubmitReport";
 import MyReports from "./pages/MyReports";
+import Login from "./pages/Login";
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    navigate("/dashboard");
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    navigate("/");
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   const handleNavigation = (page) => {
     navigate(`/${page}`);
@@ -18,7 +35,7 @@ export default function App() {
       <Sidebar active="" onNav={handleNavigation} />
 
       <div style={{ flex: 1 }}>
-        <TopBar title="" />
+        <TopBar title="" onLogout={handleLogout} />
 
         <Routes>
           <Route path="/dashboard" element={<Dashboard onNav={handleNavigation} onViewReport={() => {}} />} />
