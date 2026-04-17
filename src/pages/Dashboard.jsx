@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { DUMMY_REPORTS as REPORTS } from '../data/reports';
+import { useState, useEffect } from 'react';
 import { CATEGORIES, STATUSES } from '../constants';
 import {
   statusColor,
@@ -8,21 +7,41 @@ import {
   priorityColor,
   priorityBg,
 } from '../utils/helpers';
+import { getReports } from '../utils/api';
 import Badge from '../components/Badge';
 
 export default function Dashboard({ onNav = () => {}, onViewReport = () => {} }) {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterCat, setFilterCat]       = useState('All');
   const [search, setSearch]             = useState('');
 
-  const counts = {
-    total:      REPORTS.length,
-    newCount:   REPORTS.filter((r) => r.status === 'New').length,
-    inProgress: REPORTS.filter((r) => r.status === 'In Progress').length,
-    resolved:   REPORTS.filter((r) => r.status === 'Resolved').length,
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      const data = await getReports();
+      setReports(data);
+    } catch (error) {
+      console.error('Failed to load reports:', error);
+      setReports([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filtered = REPORTS.filter((r) =>
+  const counts = {
+    total:      reports.length,
+    newCount:   reports.filter((r) => r.status === 'New').length,
+    inProgress: reports.filter((r) => r.status === 'In Progress').length,
+    resolved:   reports.filter((r) => r.status === 'Resolved').length,
+  };
+
+  const filtered = reports.filter((r) =>
     (filterStatus === 'All' || r.status === filterStatus) &&
     (filterCat    === 'All' || r.category === filterCat) &&
     (

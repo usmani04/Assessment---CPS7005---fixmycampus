@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CATEGORIES, PRIORITIES } from '../constants';
+import { createReport } from '../utils/api';
 
 export default function SubmitReport() {
   const [form, setForm] = useState({
@@ -10,6 +11,7 @@ export default function SubmitReport() {
   const [errors, setErrors]     = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [refNum, setRefNum] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -24,10 +26,30 @@ export default function SubmitReport() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validate()) {
-      setRefNum(`FMC-${Math.floor(Math.random() * 90000) + 10000}`);
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+      const response = await createReport({
+        title: form.title,
+        category: form.category,
+        location: form.location,
+        description: form.description,
+        priority: form.priority,
+      });
+
+      setRefNum(response.report._id);
       setSubmitted(true);
+      setForm({
+        title: '', category: '', location: '',
+        description: '', priority: 'Medium',
+        photo: '', consent: false,
+      });
+    } catch (error) {
+      setErrors({ submit: error.message });
+    } finally {
+      setLoading(false);
     }
   };
 

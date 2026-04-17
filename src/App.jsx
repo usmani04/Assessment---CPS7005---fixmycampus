@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
+import { getToken, setToken } from "./utils/api";
 
 import Dashboard from "./pages/Dashboard";
 import SubmitReport from "./pages/SubmitReport";
@@ -14,8 +15,17 @@ import Login from "./pages/Login";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      setIsAuthenticated(true);
+    }
+    setLoading(false);
+  }, []);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -23,9 +33,14 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    setToken(null);
     setIsAuthenticated(false);
     navigate("/");
   };
+
+  if (loading) {
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>Loading...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;

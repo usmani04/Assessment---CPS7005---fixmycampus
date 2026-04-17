@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { login, setToken } from '../utils/api';
 
 export default function Login({ onLogin }) {
   const [credentials, setCredentials] = useState({
@@ -13,17 +14,18 @@ export default function Login({ onLogin }) {
     setLoading(true);
     setError('');
 
-    // Simple mock authentication
-    if (credentials.email === 'admin@fixmycampus.com' && credentials.password === 'admin123') {
-      setTimeout(() => {
-        onLogin();
-        setLoading(false);
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        setError('Invalid email or password');
-        setLoading(false);
-      }, 1000);
+    try {
+      const response = await login({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      setToken(response.token);
+      onLogin();
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
