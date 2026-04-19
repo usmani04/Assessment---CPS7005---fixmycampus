@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedReport, setSelectedReport] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -47,7 +48,13 @@ export default function App() {
   }
 
   const handleNavigation = (page) => {
-    navigate(`/${page}`);
+    if (typeof page === 'object' && page.type === 'view-report') {
+      setSelectedReport(page.report);
+      navigate('/my-reports');
+    } else {
+      setSelectedReport(null);
+      navigate(`/${page}`);
+    }
   };
 
   const getActivePage = () => {
@@ -82,14 +89,14 @@ export default function App() {
         <TopBar title={getPageTitle()} onLogout={handleLogout} />
 
         <Routes>
-          <Route path="/dashboard" element={<Dashboard onNav={handleNavigation} onViewReport={() => {}} />} />
+          <Route path="/dashboard" element={<Dashboard onNav={handleNavigation} onViewReport={setSelectedReport} />} />
           <Route path="/submit" element={<SubmitReport />} />
-          <Route path="/my-reports" element={<MyReports />} />
+          <Route path="/my-reports" element={<MyReports selectedReport={selectedReport} onClearReport={() => setSelectedReport(null)} onUpdateSelectedReport={setSelectedReport} />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/map" element={<CampusMap />} />
           <Route path="/guidance" element={<Guidance />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Dashboard onNav={handleNavigation} onViewReport={() => {}} />} />
+          <Route path="*" element={<Dashboard onNav={handleNavigation} onViewReport={setSelectedReport} />} />
         </Routes>
       </div>
     </div>

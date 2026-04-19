@@ -7,7 +7,7 @@ const reportSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Plumbing', 'Electrical', 'Heating', 'Cleaning', 'Damage', 'Safety', 'Other'],
+    enum: ['Electrical', 'Plumbing', 'Structural', 'Heating', 'IT / Network', 'Furniture', 'Vandalism'],
     required: true,
   },
   location: {

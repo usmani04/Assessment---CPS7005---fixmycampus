@@ -174,7 +174,7 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {} })
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: 'var(--brand-50)', borderBottom: '1px solid var(--border)' }}>
-              {['#', 'Title', 'Category', 'Location', 'Status', 'Priority', 'Date', ''].map((h) => (
+              {['#', 'Title', 'Category', 'Location', 'Status', 'Priority', 'Date'].map((h) => (
                 <th key={h} style={{
                   padding: '11px 16px',
                   textAlign: 'left',
@@ -190,13 +190,13 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {} })
           <tbody>
             {filtered.map((r) => (
               <tr
-                key={r.id}
+                key={r._id}
                 style={{ borderBottom: '1px solid var(--gray-100)', transition: 'background 0.1s' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = 'var(--brand-50)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <td style={{ padding: '12px 16px', color: 'var(--gray-400)', fontWeight: 600 }}>
-                  {r.id}
+                  {r._id?.slice(-6).toUpperCase()}
                 </td>
                 <td style={{ padding: '12px 16px', color: 'var(--gray-800)', fontWeight: 500, maxWidth: 200 }}>
                   {r.title}
@@ -209,28 +209,12 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {} })
                 <td style={{ padding: '12px 16px' }}>
                   <Badge text={r.priority} color={priorityColor(r.priority)} bg={priorityBg(r.priority)} />
                 </td>
-                <td style={{ padding: '12px 16px', color: 'var(--gray-400)', fontSize: 12 }}>{r.date}</td>
-                <td style={{ padding: '12px 16px' }}>
-                  <button
-                    onClick={() => onViewReport(r)}
-                    style={{
-                      background: 'transparent',
-                      border: '1px solid var(--brand-300)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '5px 13px',
-                      fontSize: 12,
-                      color: 'var(--brand-600)',
-                      fontWeight: 600,
-                    }}
-                  >
-                    View
-                  </button>
-                </td>
+                <td style={{ padding: '12px 16px', color: 'var(--gray-400)', fontSize: 12 }}>{new Date(r.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} style={{
+                <td colSpan={7} style={{
                   padding: '48px',
                   textAlign: 'center',
                   color: 'var(--gray-400)',

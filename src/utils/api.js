@@ -60,4 +60,8 @@ export const getReports = (params) => {
 };
 export const getMyReports = () => apiCall('/reports/my-reports');
 export const getReportById = (id) => apiCall(`/reports/${id}`);
-export const updateReport = (id, data) => apiCall(`/reports/${id}`, 'PUT', data);
+export const updateReport = async (id, data) => {
+  const result = await apiCall(`/reports/${id}`, 'PUT', data);
+  return result;
+};
+export const deleteReport = (id) => apiCall(`/reports/${id}`, 'DELETE');

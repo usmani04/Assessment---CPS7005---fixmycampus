@@ -5,31 +5,35 @@ import { connectDB } from '../config/db.js';
 import authRoutes from './routes/auth.js';
 import reportRoutes from './routes/reports.js';
 
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
 const app = express();
 
-// Middleware
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5180'];
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Connect to MongoDB
 connectDB();
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });

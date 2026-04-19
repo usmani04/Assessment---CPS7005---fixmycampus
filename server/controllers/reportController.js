@@ -73,16 +73,27 @@ export const getReportById = async (req, res) => {
 
 export const updateReport = async (req, res) => {
   try {
-    const { status, priority, update } = req.body;
+    console.log('Update request body:', req.body);
+    const { title, category, location, description, status, priority } = req.body;
+    const update = typeof req.body.update === 'string' ? req.body.update.trim() : '';
+
+    const updateFields = {
+      updatedAt: Date.now(),
+    };
+
+    if (title !== undefined) updateFields.title = title;
+    if (category !== undefined) updateFields.category = category;
+    if (location !== undefined) updateFields.location = location;
+    if (description !== undefined) updateFields.description = description;
+    if (status !== undefined) updateFields.status = status;
+    if (priority !== undefined) updateFields.priority = priority;
+
+    console.log('Update fields:', updateFields);
 
     const report = await Report.findByIdAndUpdate(
       req.params.id,
-      {
-        status,
-        priority,
-        updatedAt: Date.now(),
-      },
-      { new: true }
+      updateFields,
+      { new: true, runValidators: true }
     ).populate('reporter', 'name email');
 
     if (!report) {
@@ -94,11 +105,10 @@ export const updateReport = async (req, res) => {
       await report.save();
     }
 
-    res.json({
-      message: 'Report updated successfully',
-      report,
-    });
+    console.log('Updated report:', report);
+    res.json(report);
   } catch (error) {
+    console.error('Update error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -106,10 +116,30 @@ export const updateReport = async (req, res) => {
 export const getMyReports = async (req, res) => {
   try {
     const reports = await Report.find({ reporter: req.user.userId })
+      .populate('reporter', 'name email')
       .populate('assignedTo', 'name email')
       .sort({ createdAt: -1 });
 
     res.json(reports);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteReport = async (req, res) => {
+  try {
+    const report = await Report.findOneAndDelete({
+      _id: req.params.id,
+      reporter: req.user.userId,
+    });
+
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found or you do not have permission to delete it' });
+    }
+
+    res.json({
+      message: 'Report deleted successfully',
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
