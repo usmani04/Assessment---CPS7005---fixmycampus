@@ -40,7 +40,11 @@ const reportSchema = new mongoose.Schema({
   },
   photo: String,
   updates: [{
-    text: String,
+    message: String,
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     createdAt: {
       type: Date,
       default: Date.now,

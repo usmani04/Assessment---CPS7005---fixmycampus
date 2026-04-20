@@ -53,15 +53,16 @@ export const register = (data) => apiCall('/auth/register','POST', data);
 export const login = (data) => apiCall('/auth/login', 'POST', data);
 export const getProfile = () => apiCall('/auth/profile');
 
-export const createReport = (data) => apiCall('/reports', 'POST', data);
+export const createReport = (data) => apiCall('/reports', 'POST', data).then(res => res?.data ?? res);
 export const getReports = (params) => {
   const query = new URLSearchParams(params).toString();
-  return apiCall(`/reports${query ? '?' + query : ''}`);
+  return apiCall(`/reports${query ? '?' + query : ''}`).then(res => res?.data ?? res);
 };
-export const getMyReports = () => apiCall('/reports/my-reports');
-export const getReportById = (id) => apiCall(`/reports/${id}`);
+export const getMyReports = () => apiCall('/reports/my-reports').then(res => res?.data ?? res);
+export const getReportById = (id) => apiCall(`/reports/${id}`).then(res => res?.data ?? res);
+export const getAnalytics = () => apiCall('/reports/analytics').then(res => res?.data ?? res);
 export const updateReport = async (id, data) => {
   const result = await apiCall(`/reports/${id}`, 'PUT', data);
-  return result;
+  return result?.data ?? result;
 };
 export const deleteReport = (id) => apiCall(`/reports/${id}`, 'DELETE');

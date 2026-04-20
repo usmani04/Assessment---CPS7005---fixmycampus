@@ -27,7 +27,6 @@ export default function Sidebar({ active, onNav }) {
       overflowY: 'auto',
     }}>
 
-      {/* Logo */}
       <div style={{
         padding: '28px 22px 22px',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
@@ -61,7 +60,6 @@ export default function Sidebar({ active, onNav }) {
         </div>
       </div>
 
-      {/* Nav */}
       <nav style={{ padding: '18px 12px', flex: 1 }}>
         <div style={{
           color: 'rgba(142,189,165,0.5)',
@@ -126,7 +124,6 @@ export default function Sidebar({ active, onNav }) {
         })}
       </nav>
 
-      {/* User */}
       <div style={{
         padding: '16px 22px',
         borderTop: '1px solid rgba(255,255,255,0.07)',

@@ -12,7 +12,10 @@ export const authenticateToken = (req, res, next) => {
     if (err) {
       return res.status(403).json({ error: 'Invalid token' });
     }
-    req.user = user;
+    req.user = {
+      _id: user.userId,
+      userId: user.userId
+    };
     next();
   });
 };

@@ -1,11 +1,27 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from '../config/db.js';
 import authRoutes from './routes/auth.js';
 import reportRoutes from './routes/reports.js';
 
-dotenv.config({ path: '../.env' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const envPath = path.resolve(__dirname, '../.env');
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.error('⚠️  .env loading error:', result.error);
+} else {
+  console.log('✓ .env loaded from:', envPath);
+}
+
+console.log('✓ PORT:', process.env.PORT || '5000');
+console.log('✓ JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'MISSING');
+console.log('✓ MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'MISSING');
 
 const app = express();
 

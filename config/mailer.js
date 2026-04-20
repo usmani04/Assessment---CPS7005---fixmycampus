@@ -25,3 +25,14 @@ export const sendEmail = async (to, subject, html) => {
     throw error;
   }
 };
+
+export const sendStatusEmail = async (to, name, report) => {
+  const subject = `Update: Your report "${report.title}" is now ${report.status}`;
+  const html = `
+    <h2>Report Status Update</h2>
+    <p>Hi ${name},</p>
+    <p>Your report "<strong>${report.title}</strong>" has been updated to: <strong>${report.status}</strong></p>
+    <p>Please log in to FixMyCampus to view more details.</p>
+  `;
+  return sendEmail(to, subject, html);
+};

@@ -141,7 +141,6 @@ export default function SubmitReport() {
           padding: '36px 40px',
           boxShadow: 'var(--shadow-sm)',
         }}>
-          {/* Header */}
           <div style={{ marginBottom: 30 }}>
             <h2 style={{
               fontFamily: 'var(--font-display)',
@@ -154,7 +153,6 @@ export default function SubmitReport() {
             </p>
           </div>
 
-          {/* Title */}
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>
               Report Title <span style={{ color: 'var(--red-600)' }}>*</span>
@@ -168,7 +166,6 @@ export default function SubmitReport() {
             {errors.title && <p style={{ color: 'var(--red-600)', fontSize: 12, marginTop: 4 }}>{errors.title}</p>}
           </div>
 
-          {/* Category */}
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>
               Category <span style={{ color: 'var(--red-600)' }}>*</span>
@@ -186,7 +183,6 @@ export default function SubmitReport() {
             {errors.category && <p style={{ color: 'var(--red-600)', fontSize: 12, marginTop: 4 }}>{errors.category}</p>}
           </div>
 
-          {/* Location */}
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>
               Location <span style={{ color: 'var(--red-600)' }}>*</span>
@@ -200,7 +196,6 @@ export default function SubmitReport() {
             {errors.location && <p style={{ color: 'var(--red-600)', fontSize: 12, marginTop: 4 }}>{errors.location}</p>}
           </div>
 
-          {/* Description */}
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>
               Description <span style={{ color: 'var(--red-600)' }}>*</span>
@@ -215,7 +210,6 @@ export default function SubmitReport() {
             {errors.description && <p style={{ color: 'var(--red-600)', fontSize: 12, marginTop: 4 }}>{errors.description}</p>}
           </div>
 
-          {/* Priority */}
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>Priority</label>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -250,7 +244,6 @@ export default function SubmitReport() {
             </div>
           </div>
 
-          {/* Photo URL */}
           <div style={{ marginBottom: 22 }}>
             <label style={labelStyle}>Photo URL (optional)</label>
             <input
@@ -261,7 +254,6 @@ export default function SubmitReport() {
             />
           </div>
 
-          {/* Consent */}
           <div style={{
             background: 'var(--brand-50)',
             border: `1px solid ${errors.consent ? 'var(--red-600)' : 'var(--brand-200)'}`,

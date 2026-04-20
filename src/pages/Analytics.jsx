@@ -1,38 +1,57 @@
-import { DUMMY_REPORTS as REPORTS } from '../data/reports';
-import { CATEGORIES } from '../constants';
+import { useState, useEffect } from 'react';
+import { getAnalytics } from '../utils/api';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
-const catCounts = CATEGORIES
-  .filter((c) => c !== 'All')
-  .map((c) => ({ name: c, count: REPORTS.filter((r) => r.category === c).length }))
-  .filter((c) => c.count > 0)
-  .sort((a, b) => b.count - a.count);
-
-const maxCat = Math.max(...catCounts.map((c) => c.count));
-
-const trendData = [
-  { month: 'Jan', count: 3 },
-  { month: 'Feb', count: 5 },
-  { month: 'Mar', count: 4 },
-  { month: 'Apr', count: 8 },
-  { month: 'May', count: 6 },
-  { month: 'Jun', count: 2 },
-];
-const maxTrend = Math.max(...trendData.map((d) => d.count));
-
-const hotspots = [
-  { name: 'Block C',        count: 3, color: 'var(--brand-500)' },
-  { name: 'Library',        count: 2, color: 'var(--amber-500)' },
-  { name: 'Science Block',  count: 2, color: 'var(--blue-600)'  },
-  { name: 'Main Building',  count: 1, color: 'var(--gray-500)'  },
-];
-
-const statusBreakdown = [
-  { label: 'New',         count: 3, pct: 37, color: 'var(--blue-600)'  },
-  { label: 'In Progress', count: 3, pct: 37, color: 'var(--amber-500)' },
-  { label: 'Resolved',    count: 2, pct: 26, color: 'var(--brand-500)' },
+const COLORS = [
+  '#3B82F6',
+  '#059669',
+  '#F59E0B',
+  '#10B981',
+  '#8B5CF6',
+  '#EF4444',
+  '#6B7280',
 ];
 
-function Card({ title, children }) {
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx, cy, midAngle, innerRadius, outerRadius, percent, index,
+}) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor={x > cx ? 'start' : 'end'}
+      dominantBaseline="central"
+      fontSize={12}
+      fontWeight="bold"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
+function Card({ title, children, height = '400px' }) {
   return (
     <div style={{
       background: 'var(--surface)',
@@ -48,194 +67,426 @@ function Card({ title, children }) {
         margin: '0 0 18px',
         fontWeight: 700,
       }}>{title}</h3>
-      {children}
+      <div style={{ width: '100%', height: height }}>
+        {children}
+      </div>
     </div>
   );
 }
 
 export default function Analytics() {
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      const data = await getAnalytics();
+      setAnalyticsData(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to load analytics:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '28px 32px', textAlign: 'center' }}>
+        <div>Loading analytics...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '28px 32px', textAlign: 'center', color: 'var(--red-600)' }}>
+        <div>Error loading analytics: {error}</div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <div style={{ padding: '28px 32px', textAlign: 'center' }}>
+        <div>No analytics data available</div>
+      </div>
+    );
+  }
+
+  const { byCategory, byStatus, byMonth, hotspots } = analyticsData;
+
+  const catCounts = byCategory.map((item, index) => ({
+    name: item._id,
+    count: item.count,
+    color: COLORS[index % COLORS.length]
+  }));
+
+  const maxCat = Math.max(...catCounts.map(c => c.count), 1);
+
+  const statusBreakdown = byStatus.map((item, index) => ({
+    label: item._id,
+    count: item.count,
+    color: COLORS[index % COLORS.length]
+  }));
+
+  const totalStatus = statusBreakdown.reduce((sum, item) => sum + item.count, 0);
+  statusBreakdown.forEach(item => {
+    item.pct = Math.round((item.count / totalStatus) * 100);
+  });
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const trendData = byMonth.map(item => ({
+    month: monthNames[item._id.month - 1] + ' ' + item._id.year.toString().slice(-2),
+    count: item.count,
+    fullMonth: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`
+  })).sort((a, b) => a.fullMonth.localeCompare(b.fullMonth));
+
+  const maxTrend = Math.max(...trendData.map(d => d.count), 1);
+
+  const hotspotData = hotspots.map((item, index) => ({
+    name: item._id,
+    count: item.count,
+    color: COLORS[index % COLORS.length]
+  }));
+
+  const categoryChartData = byCategory.map((item, index) => ({
+    name: item._id,
+    value: item.count,
+    color: COLORS[index % COLORS.length]
+  }));
+
+  const statusChartData = byStatus.map((item, index) => ({
+    name: item._id,
+    value: item.count,
+    color: COLORS[index % COLORS.length]
+  }));
+
+  const lineChartData = trendData.map(item => ({
+    month: item.month,
+    reports: item.count
+  }));
+
+  const areaChartData = trendData.map(item => ({
+    month: item.month,
+    reports: item.count
+  }));
+
   return (
     <div style={{ padding: '28px 32px' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: 18,
+        marginBottom: 28
+      }}>
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '20px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--brand-600)', marginBottom: 4 }}>
+            {byCategory.reduce((sum, item) => sum + item.count, 0)}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--gray-600)' }}>Total Reports</div>
+        </div>
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '20px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#059669', marginBottom: 4 }}>
+            {byStatus.find(s => s._id === 'Resolved')?.count || 0}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--gray-600)' }}>Resolved</div>
+        </div>
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '20px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#F59E0B', marginBottom: 4 }}>
+            {byStatus.find(s => s._id === 'In Progress')?.count || 0}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--gray-600)' }}>In Progress</div>
+        </div>
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '20px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#EF4444', marginBottom: 4 }}>
+            {byStatus.find(s => s._id === 'New')?.count || 0}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--gray-600)' }}>New Reports</div>
+        </div>
+      </div>
 
-      {/* Top row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginBottom: 18 }}>
 
-        {/* Category bar chart */}
-        <Card title="Reports by Category">
-          {catCounts.map((c) => (
-            <div key={c.name} style={{ marginBottom: 14 }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: 13,
-                marginBottom: 5,
-                color: 'var(--gray-600)',
-              }}>
-                <span>{c.name}</span>
-                <span style={{ fontWeight: 700, color: 'var(--brand-600)' }}>{c.count}</span>
-              </div>
-              <div style={{
-                background: 'var(--brand-100)',
-                borderRadius: 6,
-                height: 8,
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  height: '100%',
-                  borderRadius: 6,
-                  background: 'linear-gradient(90deg, var(--brand-600), var(--brand-400))',
-                  width: `${(c.count / maxCat) * 100}%`,
-                  transition: 'width 0.6s ease',
-                }} />
-              </div>
-            </div>
-          ))}
+        <Card title="Reports by Category" height="350px">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={categoryChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              />
+              <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]}>
+                {categoryChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </Card>
 
-        {/* Monthly trend bar chart */}
-        <Card title="Monthly Report Trend">
-          <div style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: 10,
-            height: 150,
-            paddingBottom: 24,
-            position: 'relative',
-          }}>
-            {trendData.map((d) => (
-              <div key={d.month} style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 5,
-                height: '100%',
-                justifyContent: 'flex-end',
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand-600)' }}>
-                  {d.count}
-                </span>
-                <div style={{
-                  width: '100%',
-                  borderRadius: '5px 5px 0 0',
-                  background: d.month === 'Apr'
-                    ? 'var(--brand-600)'
-                    : 'var(--brand-200)',
-                  height: `${(d.count / maxTrend) * 110}px`,
-                  transition: 'height 0.5s ease',
-                }} />
-                <span style={{
-                  fontSize: 11,
-                  position: 'absolute',
-                  bottom: 0,
-                  fontWeight: d.month === 'Apr' ? 700 : 400,
-                  color: d.month === 'Apr' ? 'var(--brand-600)' : 'var(--gray-400)',
-                }}>{d.month}</span>
-              </div>
-            ))}
-          </div>
+        <Card title="Monthly Report Trend" height="350px">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={lineChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="reports"
+                stroke="#10B981"
+                strokeWidth={3}
+                dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: '#10B981', strokeWidth: 2 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </Card>
       </div>
 
-      {/* Bottom row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginBottom: 18 }}>
 
-        {/* Hotspot locations */}
-        <Card title="Hotspot Locations">
-          {hotspots.map((h, i) => (
-            <div key={h.name} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '10px 0',
-              borderBottom: i < hotspots.length - 1 ? '1px solid var(--gray-100)' : 'none',
-            }}>
-              <div style={{
-                width: 30, height: 30,
-                borderRadius: '50%',
-                background: 'var(--brand-50)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11,
-                fontWeight: 700,
-                color: 'var(--brand-600)',
-                border: '1px solid var(--brand-200)',
-              }}>#{i + 1}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--gray-700)' }}>
-                  {h.name}
-                </div>
-                <div style={{ fontSize: 11.5, color: 'var(--gray-400)' }}>
-                  {h.count} report{h.count !== 1 ? 's' : ''}
-                </div>
-              </div>
-              <div style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: h.color,
-                background: 'var(--brand-50)',
-                padding: '4px 10px',
-                borderRadius: 20,
-              }}>{h.count}</div>
-            </div>
-          ))}
+        <Card title="Status Breakdown" height="350px">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={statusChartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {statusChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              />
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                iconType="circle"
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </Card>
 
-        {/* Status breakdown */}
-        <Card title="Status Breakdown">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {statusBreakdown.map((s) => (
-              <div key={s.label}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: 13,
-                  marginBottom: 6,
-                }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--gray-700)' }}>
-                    <span style={{
-                      width: 10, height: 10,
-                      borderRadius: '50%',
-                      background: s.color,
-                      display: 'inline-block',
-                    }} />
-                    {s.label}
-                  </span>
-                  <span style={{ color: 'var(--gray-500)', fontWeight: 500 }}>
-                    {s.count} <span style={{ color: 'var(--gray-400)' }}>({s.pct}%)</span>
-                  </span>
-                </div>
-                <div style={{
-                  background: 'var(--gray-100)',
-                  borderRadius: 6,
-                  height: 10,
-                  overflow: 'hidden',
-                }}>
-                  <div style={{
-                    height: '100%',
-                    borderRadius: 6,
-                    background: s.color,
-                    width: `${s.pct}%`,
-                    transition: 'width 0.6s ease',
-                  }} />
-                </div>
-              </div>
-            ))}
-          </div>
+        <Card title="Cumulative Report Trend" height="350px">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={areaChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="reports"
+                stroke="#8B5CF6"
+                fill="url(#colorReports)"
+                strokeWidth={2}
+              />
+              <defs>
+                <linearGradient id="colorReports" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
 
-          <div style={{
-            marginTop: 22,
-            background: 'var(--brand-50)',
-            border: '1px solid var(--brand-100)',
-            borderRadius: 'var(--radius-md)',
-            padding: '12px 14px',
-            fontSize: 13,
-            color: 'var(--brand-700)',
-            lineHeight: 1.6,
-          }}>
-            📈 <strong>Insight:</strong> 33% more reports filed this month compared to March.
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 18 }}>
+        <Card title="Top Report Locations (Hotspots)" height="auto">
+          {hotspotData.length === 0 ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '200px',
+              color: 'var(--gray-500)',
+              fontSize: 16
+            }}>
+              No hotspot data available
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {hotspotData.map((location, index) => {
+                const totalReports = hotspotData.reduce((sum, loc) => sum + loc.count, 0);
+                const percentage = Math.round((location.count / totalReports) * 100);
+                const medalEmoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][index] || '*️⃣';
+                
+                return (
+                  <div
+                    key={location.name}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 16,
+                      padding: '16px',
+                      backgroundColor: 'var(--gray-50)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border)',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--brand-50)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--gray-50)'}
+                  >
+                    <div style={{
+                      fontSize: 28,
+                      minWidth: '50px',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                    }}>
+                      {medalEmoji}
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: 'var(--gray-800)',
+                        marginBottom: 6,
+                      }}>
+                        {location.name}
+                      </div>
+                      
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                      }}>
+                        <div style={{
+                          flex: 1,
+                          height: '8px',
+                          backgroundColor: 'var(--gray-200)',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{
+                            height: '100%',
+                            backgroundColor: location.color,
+                            width: `${percentage}%`,
+                            transition: 'width 0.5s ease',
+                          }} />
+                        </div>
+                        <span style={{
+                          fontSize: 12,
+                          color: 'var(--gray-600)',
+                          fontWeight: 500,
+                          minWidth: '35px',
+                        }}>
+                          {percentage}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 4,
+                      minWidth: '60px',
+                      textAlign: 'center',
+                    }}>
+                      <div style={{
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color: location.color,
+                      }}>
+                        {location.count}
+                      </div>
+                      <div style={{
+                        fontSize: 11,
+                        color: 'var(--gray-600)',
+                        fontWeight: 500,
+                      }}>
+                        reports
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
       </div>
     </div>

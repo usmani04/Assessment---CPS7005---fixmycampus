@@ -60,7 +60,6 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {} })
   return (
     <div style={{ padding: '28px 32px' }}>
 
-      {/* Stat cards */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
@@ -87,7 +86,6 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {} })
         ))}
       </div>
 
-      {/* Filter bar */}
       <div style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
@@ -163,7 +161,6 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {} })
         </button>
       </div>
 
-      {/* Table */}
       <div style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',

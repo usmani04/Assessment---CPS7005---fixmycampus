@@ -32,7 +32,6 @@ export default function CampusMap() {
         overflow: 'hidden',
         boxShadow: 'var(--shadow-sm)',
       }}>
-        {/* Header */}
         <div style={{
           padding: '16px 24px',
           borderBottom: '1px solid var(--border)',
