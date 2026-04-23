@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { connectDB } from '../config/db.js';
 import authRoutes from './routes/auth.js';
 import reportRoutes from './routes/reports.js';
+import userRoutes from './routes/users.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +26,7 @@ console.log('✓ MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'MISSING');
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5180'];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5180', 'http://localhost:5181'];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -45,6 +46,7 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });

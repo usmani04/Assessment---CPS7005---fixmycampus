@@ -68,9 +68,14 @@ export const getMyReports = async (req, res, next) => {
 
 export const createReport = async (req, res, next) => {
   try {
-    const { title, category, location, description, priority, photoUrl } = req.body;
+    const { title, category, location, description, priority, photo, photoUrl } = req.body;
     const report = await Report.create({
-      title, category, location, description, priority, photoUrl,
+      title,
+      category,
+      location,
+      description,
+      priority,
+      photo: photo || photoUrl,
       reporter: req.user._id,
     });
     const populated = await report.populate('reporter', 'name email studentId department');

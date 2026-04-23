@@ -1,17 +1,26 @@
 import { DUMMY_REPORTS as REPORTS } from '../data/reports';
 
-const NAV_ITEMS = [
-  { id: 'dashboard',  label: 'Dashboard',      icon: '⊞' },
-  { id: 'submit',     label: 'Submit Report',   icon: '＋' },
-  { id: 'my-reports', label: 'My Reports',      icon: '📄' },
-  { id: 'analytics',  label: 'Analytics',       icon: '📊' },
-  { id: 'map',        label: 'Campus Map',      icon: '🗺' },
-  { id: 'guidance',   label: 'Guidance',        icon: '📖' },
-  { id: 'settings',   label: 'Settings',        icon: '⚙' },
-];
-
-export default function Sidebar({ active, onNav }) {
+export default function Sidebar({ active, onNav, userRole = 'student' }) {
   const newCount = REPORTS.filter((r) => r.status === 'New').length;
+
+  const NAV_ITEMS = userRole === 'admin' ? [
+    { id: 'dashboard',    label: 'Dashboard',      icon: '📊' },
+    { id: 'all-reports',  label: 'All Reports',    icon: '📋' },
+    { id: 'manage-reports', label: 'Manage Reports', icon: '⚙' },
+    { id: 'users',        label: 'Users',          icon: '👥' },
+    { id: 'map',          label: 'Map Overview',   icon: '📍' },
+    { id: 'analytics',    label: 'Analytics',      icon: '📈' },
+    { id: 'notifications', label: 'Notifications', icon: '📢' },
+    { id: 'settings',     label: 'Settings',       icon: '⚙' },
+  ] : [
+    { id: 'dashboard',    label: 'Dashboard',      icon: '📊' },
+    { id: 'submit',       label: 'Submit Report',  icon: '＋' },
+    { id: 'my-reports',   label: 'My Reports',     icon: '📄' },
+    { id: 'analytics',    label: 'Analytics',      icon: '📈' },
+    { id: 'map',          label: 'Campus Map',     icon: '🗺' },
+    { id: 'guidance',     label: 'Guidance',       icon: '📖' },
+    { id: 'settings',     label: 'Settings',       icon: '⚙' },
+  ];
 
   return (
     <aside style={{

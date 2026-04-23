@@ -141,23 +141,25 @@ export default function ReportDetail({
                 >
                   ✏️ Edit
                 </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={loading}
-                  style={{
-                    background:   '#DC2626',
-                    color:        '#fff',
-                    border:       'none',
-                    borderRadius: 'var(--radius-md)',
-                    padding:      '7px 18px',
-                    fontSize:     13,
-                    fontWeight:   600,
-                    cursor:       loading ? 'not-allowed' : 'pointer',
-                    opacity:      loading ? 0.7 : 1,
-                  }}
-                >
-                  {loading ? 'Deleting…' : '🗑 Delete'}
-                </button>
+                {userRole === 'admin' && (
+                  <button
+                    onClick={handleDelete}
+                    disabled={loading}
+                    style={{
+                      background:   '#DC2626',
+                      color:        '#fff',
+                      border:       'none',
+                      borderRadius: 'var(--radius-md)',
+                      padding:      '7px 18px',
+                      fontSize:     13,
+                      fontWeight:   600,
+                      cursor:       loading ? 'not-allowed' : 'pointer',
+                      opacity:      loading ? 0.7 : 1,
+                    }}
+                  >
+                    {loading ? 'Deleting…' : '🗑 Delete'}
+                  </button>
+                )}
               </>
             ) : (
               <>

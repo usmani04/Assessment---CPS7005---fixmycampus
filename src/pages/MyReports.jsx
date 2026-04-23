@@ -4,7 +4,7 @@ import { getMyReports } from '../utils/api';
 import Badge from '../components/Badge';
 import ReportDetail from '../components/ReportDetail';
 
-export default function MyReports({ selectedReport, onClearReport, onUpdateSelectedReport }) {
+export default function MyReports({ selectedReport, onClearReport, onUpdateSelectedReport, userRole = 'student' }) {
   const [reports, setReports] = useState([]);
   const [detail, setDetail] = useState(selectedReport || null);
   const [loading, setLoading] = useState(true);
@@ -54,6 +54,7 @@ export default function MyReports({ selectedReport, onClearReport, onUpdateSelec
         onBack={() => { setDetail(null); if (onClearReport) onClearReport(); }}
         onUpdate={handleUpdateReport}
         onDelete={handleDeleteReport}
+        userRole={userRole}
       />
     );
   }

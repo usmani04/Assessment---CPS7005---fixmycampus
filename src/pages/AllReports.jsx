@@ -7,15 +7,15 @@ import {
   priorityColor,
   priorityBg,
 } from '../utils/helpers';
-import { getReports } from '../utils/api';
+import { getReports, updateReport, deleteReport } from '../utils/api';
 import Badge from '../components/Badge';
 
-export default function Dashboard({ onNav = () => {}, onViewReport = () => {}, userRole = 'student' }) {
+export default function AllReports({ onNav = () => {}, userRole = 'student' }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('All');
-  const [filterCat, setFilterCat]       = useState('All');
-  const [search, setSearch]             = useState('');
+  const [filterCat, setFilterCat] = useState('All');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchReports();
@@ -34,56 +34,54 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {}, u
     }
   };
 
-  const counts = {
-    total:      reports.length,
-    newCount:   reports.filter((r) => r.status === 'New').length,
-    inProgress: reports.filter((r) => r.status === 'In Progress').length,
-    resolved:   reports.filter((r) => r.status === 'Resolved').length,
+  const handleStatusChange = async (reportId, newStatus) => {
+    try {
+      // Update local state immediately for better UX
+      setReports(prev => prev.map(r => r._id === reportId ? { ...r, status: newStatus } : r));
+
+      await updateReport(reportId, { status: newStatus });
+      await fetchReports(); // Refresh the list to ensure consistency
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      alert('Failed to update report status');
+      // Revert the local change on error
+      await fetchReports();
+    }
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    if (!window.confirm('Are you sure you want to delete this report? This cannot be undone.')) return;
+    try {
+      await deleteReport(reportId);
+      await fetchReports(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to delete report:', error);
+      alert('Failed to delete report');
+    }
   };
 
   const filtered = reports.filter((r) =>
     (filterStatus === 'All' || r.status === filterStatus) &&
-    (filterCat    === 'All' || r.category === filterCat) &&
+    (filterCat === 'All' || r.category === filterCat) &&
     (
       r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.location.toLowerCase().includes(search.toLowerCase())
+      r.location.toLowerCase().includes(search.toLowerCase()) ||
+      r.reporter?.name?.toLowerCase().includes(search.toLowerCase())
     )
   );
 
-  const statCards = [
-    { label: 'Total Reports',  value: counts.total,      icon: '📋', accent: 'var(--brand-600)', light: 'var(--brand-50)' },
-    { label: 'New',            value: counts.newCount,   icon: '🔵', accent: 'var(--blue-600)',  light: 'var(--blue-50)'  },
-    { label: 'In Progress',    value: counts.inProgress, icon: '🟡', accent: 'var(--amber-600)', light: 'var(--amber-50)' },
-    { label: 'Resolved',       value: counts.resolved,   icon: '✅', accent: 'var(--brand-500)', light: 'var(--brand-50)' },
-  ];
-
   return (
     <div style={{ padding: '28px 32px' }}>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 16,
-        marginBottom: 28,
-      }}>
-        {statCards.map((c) => (
-          <div key={c.label} style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px 22px',
-            boxShadow: 'var(--shadow-sm)',
-            borderTop: `3px solid ${c.accent}`,
-          }}>
-            <div style={{ fontSize: 22, marginBottom: 10 }}>{c.icon}</div>
-            <div style={{ fontSize: 30, fontWeight: 700, color: c.accent, lineHeight: 1 }}>
-              {c.value}
-            </div>
-            <div style={{ fontSize: 12.5, color: 'var(--gray-500)', marginTop: 5 }}>
-              {c.label}
-            </div>
-          </div>
-        ))}
+      <div style={{ marginBottom: 22 }}>
+        <h2 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 18,
+          color: 'var(--brand-800)',
+          margin: '0 0 4px',
+        }}>All Reports</h2>
+        <p style={{ color: 'var(--gray-500)', fontSize: 13 }}>
+          View and manage all maintenance reports ({filtered.length} of {reports.length} reports)
+        </p>
       </div>
 
       <div style={{
@@ -101,7 +99,7 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {}, u
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍  Search by title or location…"
+          placeholder="🔍 Search by title, location, or reporter name…"
           style={{
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-md)',
@@ -144,47 +142,21 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {}, u
         >
           {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
         </select>
-        {userRole === 'admin' && (
-          <button
-            onClick={fetchReports}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--blue-300)',
-              borderRadius: 'var(--radius-md)',
-              padding: '8px 16px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--blue-600)',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'var(--blue-50)';
-              e.target.style.borderColor = 'var(--blue-400)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'transparent';
-              e.target.style.borderColor = 'var(--blue-300)';
-            }}
-          >
-            🔄 Refresh All
-          </button>
-        )}
         <button
-          onClick={() => onNav('submit')}
+          onClick={fetchReports}
           style={{
-            background: 'var(--brand-600)',
+            background: 'var(--blue-600)',
             color: '#fff',
             border: 'none',
             borderRadius: 'var(--radius-md)',
-            padding: '8px 18px',
+            padding: '8px 16px',
             fontSize: 13,
             fontWeight: 600,
+            cursor: 'pointer',
             whiteSpace: 'nowrap',
           }}
         >
-          + New Report
+          🔄 Refresh
         </button>
       </div>
 
@@ -198,7 +170,7 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {}, u
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: 'var(--brand-50)', borderBottom: '1px solid var(--border)' }}>
-              {['#', 'Title', 'Category', 'Location', 'Status', 'Priority', 'Date'].map((h) => (
+              {['#', 'Title', 'Reporter', 'Category', 'Location', 'Status', 'Priority', 'Date', 'Actions'].map((h) => (
                 <th key={h} style={{
                   padding: '11px 16px',
                   textAlign: 'left',
@@ -225,26 +197,79 @@ export default function Dashboard({ onNav = () => {}, onViewReport = () => {}, u
                 <td style={{ padding: '12px 16px', color: 'var(--gray-800)', fontWeight: 500, maxWidth: 200 }}>
                   {r.title}
                 </td>
+                <td style={{ padding: '12px 16px', color: 'var(--gray-600)', fontSize: 12 }}>
+                  {r.reporter?.name || 'Unknown'}
+                </td>
                 <td style={{ padding: '12px 16px', color: 'var(--gray-600)' }}>{r.category}</td>
                 <td style={{ padding: '12px 16px', color: 'var(--gray-500)', fontSize: 12 }}>{r.location}</td>
                 <td style={{ padding: '12px 16px' }}>
-                  <Badge text={r.status} color={statusText(r.status)} bg={statusBg(r.status)} />
+                  {userRole === 'admin' ? (
+                    <select
+                      value={r.status}
+                      onChange={(e) => handleStatusChange(r._id, e.target.value)}
+                      style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '4px 8px',
+                        fontSize: 12,
+                        background: statusBg(r.status),
+                        color: statusText(r.status),
+                        outline: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Badge text={r.status} color={statusText(r.status)} bg={statusBg(r.status)} />
+                  )}
                 </td>
                 <td style={{ padding: '12px 16px' }}>
                   <Badge text={r.priority} color={priorityColor(r.priority)} bg={priorityBg(r.priority)} />
                 </td>
-                <td style={{ padding: '12px 16px', color: 'var(--gray-400)', fontSize: 12 }}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td style={{ padding: '12px 16px', color: 'var(--gray-400)', fontSize: 12 }}>
+                  {new Date(r.createdAt).toLocaleDateString()}
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  {userRole === 'admin' && (
+                    <button
+                      onClick={() => handleDeleteReport(r._id)}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid var(--red-300)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '4px 8px',
+                        fontSize: 11,
+                        color: 'var(--red-600)',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = 'var(--red-50)';
+                        e.target.style.borderColor = 'var(--red-400)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = 'transparent';
+                        e.target.style.borderColor = 'var(--red-300)';
+                      }}
+                    >
+                      🗑 Delete
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} style={{
+                <td colSpan={9} style={{
                   padding: '48px',
                   textAlign: 'center',
                   color: 'var(--gray-400)',
                   fontSize: 14,
                 }}>
-                  No reports match your filters.
+                  {loading ? 'Loading reports...' : 'No reports match your filters.'}
                 </td>
               </tr>
             )}

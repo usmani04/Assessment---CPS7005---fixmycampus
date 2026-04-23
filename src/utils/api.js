@@ -53,6 +53,11 @@ export const register = (data) => apiCall('/auth/register','POST', data);
 export const login = (data) => apiCall('/auth/login', 'POST', data);
 export const getProfile = () => apiCall('/auth/profile');
 
+export const getUsers = () => apiCall('/users').then(res => res?.data ?? res);
+export const createUser = (data) => apiCall('/users', 'POST', data).then(res => res?.data ?? res);
+export const updateUser = (id, data) => apiCall(`/users/${id}`, 'PUT', data).then(res => res?.data ?? res);
+export const deleteUser = (id) => apiCall(`/users/${id}`, 'DELETE');
+
 export const createReport = (data) => apiCall('/reports', 'POST', data).then(res => res?.data ?? res);
 export const getReports = (params) => {
   const query = new URLSearchParams(params).toString();

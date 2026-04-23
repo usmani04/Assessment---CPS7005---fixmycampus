@@ -37,9 +37,10 @@ export default function SubmitReport() {
         location: form.location,
         description: form.description,
         priority: form.priority,
+        photo: form.photo,
       });
 
-      setRefNum(response.report._id);
+      setRefNum(response._id);
       setSubmitted(true);
       setForm({
         title: '', category: '', location: '',

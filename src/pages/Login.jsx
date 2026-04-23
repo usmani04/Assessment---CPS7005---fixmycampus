@@ -20,8 +20,11 @@ export default function Login({ onLogin }) {
         password: credentials.password,
       });
 
-      setToken(response.token);
-      onLogin();
+      const token = response?.data?.token;
+      const user = response?.data?.user;
+
+      setToken(token);
+      onLogin(user?.role || 'student');
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {

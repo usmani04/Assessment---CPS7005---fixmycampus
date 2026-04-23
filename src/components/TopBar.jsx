@@ -1,4 +1,4 @@
-export default function TopBar({ title, subtitle, onLogout }) {
+export default function TopBar({ title, subtitle, onLogout, userRole }) {
   return (
     <div style={{
       background: 'var(--surface)',
@@ -12,15 +12,29 @@ export default function TopBar({ title, subtitle, onLogout }) {
       zIndex: 10,
     }}>
       <div>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 21,
-          fontWeight: 700,
-          color: 'var(--brand-800)',
-          letterSpacing: -0.4,
-          margin: 0,
-          lineHeight: 1.2,
-        }}>{title}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 21,
+            fontWeight: 700,
+            color: 'var(--brand-800)',
+            letterSpacing: -0.4,
+            margin: 0,
+            lineHeight: 1.2,
+          }}>{title}</h1>
+          {userRole === 'admin' && (
+            <span style={{
+              background: 'linear-gradient(135deg, var(--brand-600) 0%, var(--brand-700) 100%)',
+              color: '#fff',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}>👨‍✈️ Admin</span>
+          )}
+        </div>
         {subtitle && (
           <p style={{
             margin: '3px 0 0',
