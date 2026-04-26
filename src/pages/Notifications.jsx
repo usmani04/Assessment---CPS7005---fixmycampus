@@ -1,72 +1,87 @@
 import { useState, useEffect } from 'react';
 
-export default function Notifications({ userRole = 'admin' }) {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function Notifications({
+  userRole = 'admin',
+  notifications: notificationsProp = [],
+  setNotifications,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+}) {
+  const [localNotifications, setLocalNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [filterType, setFilterType] = useState('All');
+  const isExternal = typeof setNotifications === 'function';
+  const notifications = isExternal ? notificationsProp : localNotifications;
 
-  // Mock notifications data
   useEffect(() => {
-    setTimeout(() => {
-      setNotifications([
-        {
-          _id: '1',
-          type: 'report',
-          title: 'New Maintenance Report',
-          message: 'Electrical issue reported in Room 101',
-          priority: 'High',
-          read: false,
-          createdAt: '2024-01-15T10:30:00Z',
-          reporter: 'Ali Hassan'
-        },
-        {
-          _id: '2',
-          type: 'status_update',
-          title: 'Report Status Changed',
-          message: 'Report #ABC123 status changed from New to In Progress',
-          priority: 'Medium',
-          read: true,
-          createdAt: '2024-01-15T09:15:00Z',
-          updatedBy: 'Admin User'
-        },
-        {
-          _id: '3',
-          type: 'system',
-          title: 'System Maintenance',
-          message: 'Scheduled maintenance will occur tonight from 2-4 AM',
-          priority: 'Low',
-          read: false,
-          createdAt: '2024-01-14T16:00:00Z',
-        },
-        {
-          _id: '4',
-          type: 'user',
-          title: 'New User Registration',
-          message: 'Sarah Ahmed has registered as a new user',
-          priority: 'Low',
-          read: true,
-          createdAt: '2024-01-14T11:20:00Z',
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    if (!isExternal) {
+      setLoading(true);
+      const timeout = setTimeout(() => {
+        setLocalNotifications([
+          {
+            _id: '1',
+            type: 'report',
+            title: 'New Maintenance Report',
+            message: 'Electrical issue reported in Room 101',
+            priority: 'High',
+            read: false,
+            createdAt: '2024-01-15T10:30:00Z',
+            reporter: 'Ali Hassan'
+          },
+          {
+            _id: '2',
+            type: 'status_update',
+            title: 'Report Status Changed',
+            message: 'Report #ABC123 status changed from New to In Progress',
+            priority: 'Medium',
+            read: true,
+            createdAt: '2024-01-15T09:15:00Z',
+            updatedBy: 'Admin User'
+          },
+          {
+            _id: '3',
+            type: 'system',
+            title: 'System Maintenance',
+            message: 'Scheduled maintenance will occur tonight from 2-4 AM',
+            priority: 'Low',
+            read: false,
+            createdAt: '2024-01-14T16:00:00Z',
+          },
+          {
+            _id: '4',
+            type: 'user',
+            title: 'New User Registration',
+            message: 'Sarah Ahmed has registered as a new user',
+            priority: 'Low',
+            read: true,
+            createdAt: '2024-01-14T11:20:00Z',
+          }
+        ]);
+        setLoading(false);
+      }, 800);
+      return () => clearTimeout(timeout);
+    }
+  }, [notificationsProp]);
 
   const handleMarkAsRead = (notificationId) => {
-    setNotifications(prev =>
+    if (markAsRead) return markAsRead(notificationId);
+    setLocalNotifications((prev) =>
       prev.map(n => n._id === notificationId ? { ...n, read: true } : n)
     );
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (markAllAsRead) return markAllAsRead();
+    setLocalNotifications((prev) => prev.map(n => ({ ...n, read: true })));
   };
 
   const handleDeleteNotification = (notificationId) => {
-    setNotifications(prev => prev.filter(n => n._id !== notificationId));
+    if (deleteNotification) return deleteNotification(notificationId);
+    setLocalNotifications((prev) => prev.filter((n) => n._id !== notificationId));
   };
 
-  const filteredNotifications = notifications.filter(n =>
+  const filteredNotifications = notifications.filter((n) =>
     filterType === 'All' || n.type === filterType
   );
 

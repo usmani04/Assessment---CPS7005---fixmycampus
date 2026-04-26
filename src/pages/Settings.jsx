@@ -1,47 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getProfile, updateUser } from '../utils/api';
 
-function Toggle({ label, desc, value, onChange }) {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '14px 0',
-      borderBottom: '1px solid var(--gray-100)',
-    }}>
-      <div>
-        <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--gray-700)' }}>{label}</div>
-        <div style={{ fontSize: 12, color: 'var(--gray-400)', marginTop: 2 }}>{desc}</div>
-      </div>
-      <button
-        onClick={onChange}
-        style={{
-          width: 44, height: 24,
-          borderRadius: 12,
-          border: 'none',
-          background: value ? 'var(--brand-500)' : 'var(--gray-300)',
-          cursor: 'pointer',
-          position: 'relative',
-          transition: 'background 0.2s',
-          flexShrink: 0,
-        }}
-      >
-        <span style={{
-          position: 'absolute',
-          top: 3,
-          left: value ? 22 : 3,
-          width: 18, height: 18,
-          borderRadius: '50%',
-          background: '#fff',
-          transition: 'left 0.2s',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-        }} />
-      </button>
-    </div>
-  );
-}
-
 function Section({ title, children }) {
   return (
     <div style={{
@@ -74,9 +33,6 @@ export default function Settings() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [notifEmail, setNotifEmail] = useState(true);
-  const [notifSMS, setNotifSMS] = useState(false);
-  const [anonData, setAnonData] = useState(true);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -91,8 +47,6 @@ export default function Settings() {
           department: userData.department || '',
         });
         setUserId(userData._id);
-        setNotifEmail(userData.notifEmail !== false);
-        setAnonData(userData.anonData !== false);
       } catch (err) {
         setError('Failed to load profile');
         console.error('Profile fetch error:', err);
@@ -137,8 +91,6 @@ export default function Settings() {
         email: profile.email,
         studentId: profile.studentId,
         department: profile.department,
-        notifEmail,
-        anonData,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
@@ -182,9 +134,9 @@ export default function Settings() {
                 color: 'var(--brand-800)',
                 margin: '0 0 6px',
                 fontWeight: 700,
-              }}>⚙️ Settings</h2>
+              }}>👤 Profile</h2>
               <p style={{ color: 'var(--gray-500)', fontSize: 14, margin: 0 }}>
-                Manage your account preferences and notification settings
+                Update your account details
               </p>
             </div>
 
@@ -206,48 +158,6 @@ export default function Settings() {
                 />
               </div>
             ))}
-          </div>
-        </Section>
-
-        {/* Notifications */}
-        <Section title="🔔 Notifications">
-          <Toggle
-            label="Email notifications"
-            desc="Receive an email when your report status changes"
-            value={notifEmail}
-            onChange={() => setNotifEmail(!notifEmail)}
-          />
-          <Toggle
-            label="SMS notifications"
-            desc="Receive a text message for urgent updates"
-            value={notifSMS}
-            onChange={() => setNotifSMS(!notifSMS)}
-          />
-        </Section>
-
-        {/* Privacy */}
-        <Section title="🔒 Privacy & Data">
-          <Toggle
-            label="Allow anonymised data use"
-            desc="Your data may be used in anonymised trend reports"
-            value={anonData}
-            onChange={() => setAnonData(!anonData)}
-          />
-          <div style={{
-            marginTop: 16,
-            background: 'var(--brand-50)',
-            border: '1px solid var(--brand-100)',
-            borderRadius: 'var(--radius-md)',
-            padding: '12px 16px',
-            fontSize: 13,
-            color: 'var(--brand-700)',
-            lineHeight: 1.6,
-          }}>
-            Your personal data is stored securely and never sold. View our full{' '}
-            <span style={{ fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}>
-              Privacy Policy
-            </span>{' '}
-            for details.
           </div>
         </Section>
 

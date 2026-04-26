@@ -35,7 +35,7 @@ export default function Guidance() {
             margin: '0 0 8px',
             fontSize: 20,
           }}>Quick Tips for Better Reports</h3>
-          <p style={{ margin: 0, color: 'var(--brand-200)', fontSize: 14, lineHeight: 1.65 }}>
+          <p style={{ margin: 0, color: '#fff', fontSize: 14, lineHeight: 1.65 }}>
             Read our guidance to submit better reports and get issues resolved faster.
             In an emergency, call campus security on{' '}
             <strong style={{ color: '#fff' }}>ext. 999</strong>.

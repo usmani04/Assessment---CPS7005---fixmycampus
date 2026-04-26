@@ -1,4 +1,4 @@
-export default function TopBar({ title, subtitle, onLogout, userRole }) {
+export default function TopBar({ title, subtitle, onLogout, userRole, unreadCount = 0, onBellClick }) {
   return (
     <div style={{
       background: 'var(--surface)',
@@ -45,18 +45,21 @@ export default function TopBar({ title, subtitle, onLogout, userRole }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button style={{
-          background: 'var(--brand-50)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
-          padding: '7px 14px',
-          fontSize: 13,
-          color: 'var(--brand-700)',
-          fontWeight: 500,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}>
+        <button
+          onClick={onBellClick}
+          style={{
+            background: 'var(--brand-50)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '7px 14px',
+            fontSize: 13,
+            color: 'var(--brand-700)',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            cursor: onBellClick ? 'pointer' : 'default',
+          }}>
           🔔
           <span style={{
             background: 'var(--brand-500)',
@@ -65,7 +68,9 @@ export default function TopBar({ title, subtitle, onLogout, userRole }) {
             fontSize: 10,
             fontWeight: 700,
             padding: '1px 6px',
-          }}>3</span>
+            minWidth: 20,
+            textAlign: 'center',
+          }}>{unreadCount}</span>
         </button>
 
         <img

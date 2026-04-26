@@ -10,7 +10,7 @@ import {
 import { getReports, updateReport, deleteReport } from '../utils/api';
 import Badge from '../components/Badge';
 
-export default function ManageReports({ onNav = () => {}, userRole = 'admin' }) {
+export default function ManageReports({ onNav = () => {}, userRole = 'admin', onNotify }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('All');
@@ -50,6 +50,15 @@ export default function ManageReports({ onNav = () => {}, userRole = 'admin' }) 
     } catch (error) {
       console.error('Failed to update reports:', error);
       alert('Failed to update selected reports');
+    }
+
+    if (onNotify) {
+      onNotify({
+        title: 'Report Status Updated',
+        message: `${selectedReports.length} report(s) were moved to ${newStatus}.`,
+        type: 'status_update',
+        priority: 'Medium',
+      });
     }
   };
 

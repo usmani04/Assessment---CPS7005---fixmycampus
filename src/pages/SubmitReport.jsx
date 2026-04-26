@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CATEGORIES, PRIORITIES } from '../constants';
 import { createReport } from '../utils/api';
 
-export default function SubmitReport() {
+export default function SubmitReport({ onNotify }) {
   const [form, setForm] = useState({
     title: '', category: '', location: '',
     description: '', priority: 'Medium',
@@ -47,6 +47,18 @@ export default function SubmitReport() {
         description: '', priority: 'Medium',
         photo: '', consent: false,
       });
+
+      if (onNotify) {
+        onNotify({
+          title: 'Report Submitted',
+          message: `Your report has been submitted and assigned reference ${response._id}. Admin will be notified.`,
+          type: 'report',
+          priority: 'Medium',
+          meta: {
+            reporter: 'You',
+          },
+        });
+      }
     } catch (error) {
       setErrors({ submit: error.message });
     } finally {
