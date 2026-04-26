@@ -45,6 +45,41 @@ export default function MyReports({ selectedReport, onClearReport, onUpdateSelec
     if (onClearReport) onClearReport();
   };
 
+  const buildCsvRow = (row) => {
+    const escapeCsv = (value) => {
+      if (value === null || value === undefined) return '';
+      const text = String(value).replace(/"/g, '""');
+      return `"${text}"`;
+    };
+
+    return [
+      row._id,
+      row.title,
+      row.category,
+      row.location,
+      row.status,
+      row.priority,
+      row.createdAt ? new Date(row.createdAt).toLocaleString() : '',
+    ].map(escapeCsv).join(',');
+  };
+
+  const exportMyReports = () => {
+    const headers = ['Report ID', 'Title', 'Category', 'Location', 'Status', 'Priority', 'Created At'];
+    const rows = [headers.join(',')];
+    reports.forEach((report) => rows.push(buildCsvRow(report)));
+
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `my_reports_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const viewReport = detail;
 
   if (viewReport) {
@@ -62,15 +97,35 @@ export default function MyReports({ selectedReport, onClearReport, onUpdateSelec
   return (
     <div style={{ padding: '28px 32px' }}>
       <div style={{ marginBottom: 22 }}>
-        <h2 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 18,
-          color: 'var(--brand-800)',
-          margin: '0 0 4px',
-        }}>My Submitted Reports</h2>
-        <p style={{ color: 'var(--gray-500)', fontSize: 13 }}>
-          Showing your {reports.length} submission{reports.length !== 1 ? 's' : ''}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <h2 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 18,
+              color: 'var(--brand-800)',
+              margin: '0 0 4px',
+            }}>My Submitted Reports</h2>
+            <p style={{ color: 'var(--gray-500)', fontSize: 13 }}>
+              Showing your {reports.length} submission{reports.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <button
+            onClick={exportMyReports}
+            disabled={reports.length === 0}
+            style={{
+              background: 'var(--green-600)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 16px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: reports.length === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            📄 Export CSV
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gap: 12 }}>

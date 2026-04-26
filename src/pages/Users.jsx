@@ -70,6 +70,41 @@ export default function Users({ userRole = 'admin' }) {
      user.department?.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const buildCsvRow = (row) => {
+    const escapeCsv = (value) => {
+      if (value === null || value === undefined) return '';
+      const text = String(value).replace(/"/g, '""');
+      return `"${text}"`;
+    };
+
+    return [
+      row._id,
+      row.name,
+      row.email,
+      row.role,
+      row.department || '',
+      row.studentId || '',
+      row.createdAt ? new Date(row.createdAt).toLocaleString() : '',
+    ].map(escapeCsv).join(',');
+  };
+
+  const exportFilteredUsers = () => {
+    const headers = ['User ID', 'Name', 'Email', 'Role', 'Department', 'Student ID', 'Created At'];
+    const rows = [headers.join(',')];
+    filteredUsers.forEach((user) => rows.push(buildCsvRow(user)));
+
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `users_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ padding: '28px 32px' }}>
       <div style={{ marginBottom: 22 }}>
@@ -131,6 +166,23 @@ export default function Users({ userRole = 'admin' }) {
           <option value="staff">Staff</option>
           <option value="admin">Admins</option>
         </select>
+        <button
+          onClick={exportFilteredUsers}
+          style={{
+            background: 'var(--green-600)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 18px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+          disabled={filteredUsers.length === 0}
+        >
+          📄 Export CSV
+        </button>
         <button
           onClick={handleCreateUser}
           style={{

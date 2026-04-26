@@ -70,6 +70,43 @@ export default function AllReports({ onNav = () => {}, userRole = 'student' }) {
     )
   );
 
+  const buildCsvRow = (row) => {
+    const escapeCsv = (value) => {
+      if (value === null || value === undefined) return '';
+      const text = String(value).replace(/"/g, '""');
+      return `"${text}"`;
+    };
+
+    return [
+      row._id,
+      row.title,
+      row.reporter?.name,
+      row.reporter?.email,
+      row.category,
+      row.location,
+      row.status,
+      row.priority,
+      row.createdAt ? new Date(row.createdAt).toLocaleString() : '',
+    ].map(escapeCsv).join(',');
+  };
+
+  const exportFilteredReports = () => {
+    const headers = ['Report ID', 'Title', 'Reporter', 'Reporter Email', 'Category', 'Location', 'Status', 'Priority', 'Created At'];
+    const rows = [headers.join(',')];
+    filtered.forEach((report) => rows.push(buildCsvRow(report)));
+
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `reports_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ padding: '28px 32px' }}>
       <div style={{ marginBottom: 22 }}>
@@ -142,6 +179,23 @@ export default function AllReports({ onNav = () => {}, userRole = 'student' }) {
         >
           {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
         </select>
+        <button
+          onClick={exportFilteredReports}
+          style={{
+            background: 'var(--green-600)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 16px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+          disabled={filtered.length === 0}
+        >
+          📄 Export CSV
+        </button>
         <button
           onClick={fetchReports}
           style={{
