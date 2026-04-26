@@ -53,9 +53,13 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password, studentId, department, role } = req.body;
+    const { name, email, password, studentId, department, role, notifEmail, anonData } = req.body;
 
     const updateData = { name, email, studentId, department, role };
+
+    // Handle optional boolean fields
+    if (notifEmail !== undefined) updateData.notifEmail = notifEmail;
+    if (anonData !== undefined) updateData.anonData = anonData;
 
     if (password) {
       const salt = await bcryptjs.genSalt(10);

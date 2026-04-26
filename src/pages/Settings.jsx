@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getProfile, updateUser } from '../utils/api';
 
 function Toggle({ label, desc, value, onChange }) {
   return (
@@ -65,15 +66,43 @@ function Section({ title, children }) {
 
 export default function Settings() {
   const [profile, setProfile] = useState({
-    name:       'Ali Hassan',
-    email:      'ali.hassan@university.ac.uk',
-    studentId:  'ST-20241892',
-    department: 'Computer Science',
+    name: '',
+    email: '',
+    studentId: '',
+    department: '',
   });
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [notifEmail, setNotifEmail] = useState(true);
-  const [notifSMS,   setNotifSMS]   = useState(false);
-  const [anonData,   setAnonData]   = useState(true);
-  const [saved,      setSaved]      = useState(false);
+  const [notifSMS, setNotifSMS] = useState(false);
+  const [anonData, setAnonData] = useState(true);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getProfile();
+        const userData = response.data;
+        setProfile({
+          name: userData.name || '',
+          email: userData.email || '',
+          studentId: userData.studentId || '',
+          department: userData.department || '',
+        });
+        setUserId(userData._id);
+        setNotifEmail(userData.notifEmail !== false);
+        setAnonData(userData.anonData !== false);
+      } catch (err) {
+        setError('Failed to load profile');
+        console.error('Profile fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const inputStyle = {
     width: '100%',
@@ -98,42 +127,80 @@ export default function Settings() {
     marginBottom: 5,
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const handleSave = async () => {
+    if (!userId) return;
+
+    try {
+      setError(null);
+      await updateUser(userId, {
+        name: profile.name,
+        email: profile.email,
+        studentId: profile.studentId,
+        department: profile.department,
+        notifEmail,
+        anonData,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setError('Failed to save settings');
+      console.error('Save error:', err);
+    }
   };
 
   return (
     <div style={{ padding: '28px 32px' }}>
       <div style={{ maxWidth: 580, margin: '0 auto' }}>
 
-        {/* Header */}
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 24,
-            color: 'var(--brand-800)',
-            margin: '0 0 6px',
-            fontWeight: 700,
-          }}>⚙️ Settings</h2>
-          <p style={{ color: 'var(--gray-500)', fontSize: 14, margin: 0 }}>
-            Manage your account preferences and notification settings
-          </p>
-        </div>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-500)' }}>
+            Loading profile...
+          </div>
+        )}
+
+        {error && (
+          <div style={{
+            background: 'var(--red-50)',
+            border: '1px solid var(--red-200)',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px 16px',
+            marginBottom: 20,
+            color: 'var(--red-700)',
+            fontSize: 14,
+          }}>
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            {/* Header */}
+            <div style={{ marginBottom: 32 }}>
+              <h2 style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 24,
+                color: 'var(--brand-800)',
+                margin: '0 0 6px',
+                fontWeight: 700,
+              }}>⚙️ Settings</h2>
+              <p style={{ color: 'var(--gray-500)', fontSize: 14, margin: 0 }}>
+                Manage your account preferences and notification settings
+              </p>
+            </div>
 
         {/* Profile */}
         <Section title="👤 Profile">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             {[
-              ['Full Name',    'name',       'Ali Hassan'],
-              ['Email',        'email',      'ali.hassan@university.ac.uk'],
-              ['Student ID',   'studentId',  'ST-20241892'],
-              ['Department',   'department', 'Computer Science'],
+              ['Full Name', 'name'],
+              ['Email', 'email'],
+              ['Student ID', 'studentId'],
+              ['Department', 'department'],
             ].map(([label, key]) => (
               <div key={key}>
                 <label style={labelStyle}>{label}</label>
                 <input
-                  value={profile[key]}
+                  value={profile[key] || ''}
                   onChange={(e) => setProfile((p) => ({ ...p, [key]: e.target.value }))}
                   style={inputStyle}
                 />
@@ -201,6 +268,8 @@ export default function Settings() {
         >
           {saved ? '✓ Settings Saved!' : 'Save Settings'}
         </button>
+          </>
+        )}
       </div>
     </div>
   );

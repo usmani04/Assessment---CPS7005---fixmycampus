@@ -1,6 +1,6 @@
 import { DUMMY_REPORTS as REPORTS } from '../data/reports';
 
-export default function Sidebar({ active, onNav, userRole = 'student' }) {
+export default function Sidebar({ active, onNav, userRole = 'student', currentUser }) {
   const newCount = REPORTS.filter((r) => r.status === 'New').length;
 
   const NAV_ITEMS = userRole === 'admin' ? [
@@ -147,13 +147,15 @@ export default function Sidebar({ active, onNav, userRole = 'student' }) {
             color: '#fff',
             fontWeight: 700,
             fontSize: 13,
-          }}>AH</div>
+          }}>
+            {currentUser ? (currentUser.name ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U') : 'U'}
+          </div>
           <div>
             <div style={{ color: '#E2F5EC', fontSize: 13, fontWeight: 600 }}>
-              Ali Hassan
+              {currentUser ? currentUser.name : 'Loading...'}
             </div>
             <div style={{ color: 'var(--sidebar-text)', fontSize: 11 }}>
-              Student · CS Dept.
+              {userRole.charAt(0).toUpperCase() + userRole.slice(1)} · {currentUser ? (currentUser.department || 'N/A') : 'Loading...'}
             </div>
           </div>
         </div>

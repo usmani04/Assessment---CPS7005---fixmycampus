@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
-import { getToken, setToken } from "./utils/api";
+import { getToken, setToken, getProfile } from "./utils/api";
 
 import Dashboard from "./pages/Dashboard";
 import SubmitReport from "./pages/SubmitReport";
@@ -22,6 +22,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState('student');
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,14 +32,27 @@ export default function App() {
     if (token) {
       setIsAuthenticated(true);
       setCurrentUserRole(role);
+      // Fetch user profile
+      getProfile().then(response => {
+        setCurrentUser(response.data);
+      }).catch(err => {
+        console.error('Failed to fetch user profile:', err);
+      });
     }
     setLoading(false);
   }, []);
 
-  const handleLogin = (userRole) => {
+  const handleLogin = async (userRole) => {
     setIsAuthenticated(true);
     setCurrentUserRole(userRole);
     localStorage.setItem('userRole', userRole);
+    // Fetch user profile after login
+    try {
+      const response = await getProfile();
+      setCurrentUser(response.data);
+    } catch (err) {
+      console.error('Failed to fetch user profile after login:', err);
+    }
     navigate("/dashboard");
   };
 
@@ -47,6 +61,7 @@ export default function App() {
     localStorage.removeItem('userRole');
     setIsAuthenticated(false);
     setCurrentUserRole('student');
+    setCurrentUser(null);
     navigate("/");
   };
 
@@ -102,7 +117,7 @@ export default function App() {
 
   return (
     <div style={{ display: "flex" }}>
-      <Sidebar active={getActivePage()} onNav={handleNavigation} userRole={currentUserRole} />
+      <Sidebar active={getActivePage()} onNav={handleNavigation} userRole={currentUserRole} currentUser={currentUser} />
 
       <div style={{ flex: 1 }}>
         <TopBar title={getPageTitle()} onLogout={handleLogout} userRole={currentUserRole} />

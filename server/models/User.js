@@ -27,6 +27,14 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'staff', 'admin'],
     default: 'student',
   },
+  notifEmail: {
+    type: Boolean,
+    default: true,
+  },
+  anonData: {
+    type: Boolean,
+    default: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
