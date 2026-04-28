@@ -146,13 +146,16 @@ export default function ManageReports({ onNav = () => {}, userRole = 'admin', on
                 borderRadius: 'var(--radius-md)',
                 padding: '6px 10px',
                 fontSize: 12,
-                background: 'var(--surface)',
+                background: '#fff',
+                color: '#111',
                 outline: 'none',
+                WebkitTextFillColor: '#111',
+                MozTextFillColor: '#111',
               }}
               defaultValue=""
             >
-              <option value="">Change Status</option>
-              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              <option value="" style={{ color: '#111', background: '#fff' }}>Change Status</option>
+              {STATUSES.map((s) => <option key={s} value={s} style={{ color: '#111', background: '#fff' }}>{s}</option>)}
             </select>
             <button
               onClick={handleBulkDelete}
