@@ -131,10 +131,15 @@ export const updateReport = async (req, res, next) => {
       .populate('updates.updatedBy', 'name');
 
     if (req.body.status && req.body.status !== prevStatus && report.reporter.notifEmail) {
-      await sendStatusEmail(report.reporter.email, report.reporter.name, {
-        title:  fresh.title,
-        status: fresh.status,
-      });
+      try {
+        await sendStatusEmail(report.reporter.email, report.reporter.name, {
+          title:  fresh.title,
+          status: fresh.status,
+        });
+      } catch (emailError) {
+        console.warn('[updateReport] Email sending failed:', emailError.message);
+        // Don't fail the request if email fails - the status update already succeeded
+      }
     }
 
     res.status(200).json({ success: true, data: fresh });

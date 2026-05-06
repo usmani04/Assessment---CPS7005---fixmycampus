@@ -40,12 +40,18 @@ export default function AllReports({ onNav = () => {}, userRole = 'student' }) {
       setReports(prev => prev.map(r => r._id === reportId ? { ...r, status: newStatus } : r));
 
       await updateReport(reportId, { status: newStatus });
-      await fetchReports(); // Refresh the list to ensure consistency
+      
+      // Refresh the list to ensure consistency, but don't fail if refresh fails
+      try {
+        await fetchReports();
+      } catch (refreshError) {
+        console.warn('Failed to refresh reports after update:', refreshError);
+      }
     } catch (error) {
       console.error('Failed to update status:', error);
       alert('Failed to update report status');
       // Revert the local change on error
-      await fetchReports();
+      setReports(prev => prev.map(r => r._id === reportId ? { ...r, status: r.status } : r));
     }
   };
 

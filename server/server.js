@@ -12,12 +12,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const envPath = path.resolve(__dirname, '../.env');
-const result = dotenv.config({ path: envPath });
+const altEnvPath = path.resolve(process.cwd(), '.env');
+let loadedEnvPath = envPath;
+let result = dotenv.config({ path: envPath });
+if (result.error) {
+  console.warn('⚠️  .env not found at:', envPath);
+  result = dotenv.config({ path: altEnvPath });
+  loadedEnvPath = altEnvPath;
+}
 
 if (result.error) {
   console.error('⚠️  .env loading error:', result.error);
 } else {
-  console.log('✓ .env loaded from:', envPath);
+  console.log('✓ .env loaded from:', loadedEnvPath);
 }
 
 console.log('✓ PORT:', process.env.PORT || '5000');
@@ -26,7 +33,7 @@ console.log('✓ MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'MISSING');
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5180', 'http://localhost:5181'];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5180', 'http://localhost:5181', 'http://localhost:5182', 'http://localhost:5183', 'http://localhost:5184'];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

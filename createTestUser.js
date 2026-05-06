@@ -1,10 +1,12 @@
 import dotenv from 'dotenv';
+import path from 'path';
 import mongoose from 'mongoose';
 import bcryptjs from 'bcryptjs';
 import User from './server/models/User.js';
 import { connectDB } from './config/db.js';
 
-dotenv.config();
+const envPath = path.resolve(process.cwd(), '.env');
+dotenv.config({ path: envPath });
 
 const createTestUsers = async () => {
   try {

@@ -46,19 +46,25 @@ export default function ManageReports({ onNav = () => {}, userRole = 'admin', on
       const promises = selectedReports.map(id => updateReport(id, { status: newStatus }));
       await Promise.all(promises);
       setSelectedReports([]);
-      await fetchReports();
+      
+      // Refresh the list to ensure consistency, but don't fail if refresh fails
+      try {
+        await fetchReports();
+      } catch (refreshError) {
+        console.warn('Failed to refresh reports after update:', refreshError);
+      }
+
+      if (onNotify) {
+        onNotify({
+          title: 'Report Status Updated',
+          message: `${selectedReports.length} report(s) were moved to ${newStatus}.`,
+          type: 'status_update',
+          priority: 'Medium',
+        });
+      }
     } catch (error) {
       console.error('Failed to update reports:', error);
       alert('Failed to update selected reports');
-    }
-
-    if (onNotify) {
-      onNotify({
-        title: 'Report Status Updated',
-        message: `${selectedReports.length} report(s) were moved to ${newStatus}.`,
-        type: 'status_update',
-        priority: 'Medium',
-      });
     }
   };
 
